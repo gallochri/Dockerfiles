@@ -1,14 +1,22 @@
 #Version: 0.0.1
 FROM opensuse:latest
-MAINTAINER Christian Galeffi "chri@gallochri.com"
+LABEL maintainer="chri@gallochri.com"
+ENV REFRESHED_AT 2017-09-01
+ENV MYSQL_ROOT_PASSWORD "mysqlrootpassword"
 
-ENV MYSQL_USER=mysql \
-    MYSQL_DATA_DIR=/var/lib/mysql \
-    MYSQL_RUN_DIR=/run/mysqld \
-    MYSQL_LOG_DIR=/var/log/mysql
+#Update and install packages
+RUN zypper --non-interactive dup && \
+    zypper in -y perl && \
+    zypper in -y mysql-community-server
 
-RUN zypper --non-interactive dup
-RUN zypper in -y mysql-community-server
+RUN mkdir -p /var/lib/mysql
+RUN chown -R mysql:mysql /var/lib/mysql
+USER mysql:mysql
+VOLUME /var/lib/mysql
+
+COPY opensuse-mysql-entrypoint.sh /entrypoint.sh
+ENTRYPOINT ["/entrypoint.sh"]
 
 EXPOSE 3306
 
+CMD ["mysqld","--explicit_defaults_for_timestamp"]
