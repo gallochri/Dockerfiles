@@ -15,7 +15,9 @@ USER mysql:mysql
 VOLUME /var/lib/mysql
 
 COPY opensuse-mysql-entrypoint.sh /entrypoint.sh
+COPY opensuse-mysql-healthcheck.sh /healthcheck.sh
 ENTRYPOINT ["/entrypoint.sh"]
+HEALTHCHECK CMD /healthcheck.sh
 
 EXPOSE 3306
 
