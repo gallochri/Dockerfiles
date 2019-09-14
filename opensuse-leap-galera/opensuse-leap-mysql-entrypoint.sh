@@ -1,6 +1,6 @@
 #!/bin/bash
 set -e
-echo "[Entrypoint] openSUSE MySQL Docker Image"
+echo "[Entrypoint] openSUSE MariaDB Docker Image"
 
 # Fetch value from server config
 # We use mysqld --verbose --help instead of my_print_defaults because the
@@ -22,16 +22,15 @@ if [ "$1" = 'mysqld' ]; then
 	# only the error messages are left.
 	result=0
 	output=$("$@" --verbose --help 2>&1 > /dev/null) || result=$?
+	echo ${result}
 	if [ ! "$result" = "0" ]; then
 		echo >&2 '[Entrypoint] ERROR: Unable to start MySQL. Please check your configuration.'
 		echo >&2 "[Entrypoint] $output"
 		exit 1
 	fi
-
 	# Get config
 	DATADIR="$(_get_config 'datadir' "$@")"
 	SOCKET="$(_get_config 'socket' "$@")"
-
 	if [ ! -d "$DATADIR/mysql" ]; then
 		if [ -z "$MYSQL_ROOT_PASSWORD" -a -z "$MYSQL_ALLOW_EMPTY_PASSWORD" -a -z "$MYSQL_RANDOM_ROOT_PASSWORD" ]; then
 			echo >&2 '[Entrypoint] ERROR: No password option specified for new database.'
@@ -43,13 +42,11 @@ if [ "$1" = 'mysqld' ]; then
 		fi
 		# If the password variable is a filename we use the contents of the file
 		if [ -f "$MYSQL_ROOT_PASSWORD" ]; then
-			MYSQL_ROOT_PASSWORD="$(cat $MYSQL_ROOT_PASSWORD)"
+			MYSQL_ROOT_PASSWORD="$(cat "$MYSQL_ROOT_PASSWORD")"
 		fi
-		#mkdir -p "$DATADIR"
-		#chown -R mysql:mysql "$DATADIR"
 
 		echo '[Entrypoint] Initializing database'
-		"$@" --initialize-insecure
+		"$@"
 		echo '[Entrypoint] Database initialized'
 
 		"$@" --daemonize --skip-networking --socket="$SOCKET"
