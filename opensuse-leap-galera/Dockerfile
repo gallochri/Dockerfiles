@@ -16,6 +16,8 @@ RUN zypper --non-interactive dup
 RUN zypper install -y mariadb mariadb-galera galera-3
 RUN mkdir -p /var/lib/mysql &&\
     chown -R mysql:mysql /var/lib/mysql
+RUN mysql_install_db
+
 USER mysql:mysql
 VOLUME /var/lib/mysql
 
