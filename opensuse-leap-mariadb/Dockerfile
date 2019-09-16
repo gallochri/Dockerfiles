@@ -11,11 +11,11 @@ RUN zypper --non-interactive dup && \
     zypper in -y mariadb
 RUN mkdir -p /var/lib/mysql &&\
     chown -R mysql:mysql /var/lib/mysql
-RUN mysql_install_db
 
 USER mysql:mysql
-VOLUME /var/lib/mysql
+RUN mysql_install_db
 
+VOLUME /var/lib/mysql
 COPY opensuse-leap-mariadb-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
 COPY opensuse-leap-mariadb-healthcheck.sh /healthcheck.sh
 ENTRYPOINT ["docker-entrypoint.sh"]
