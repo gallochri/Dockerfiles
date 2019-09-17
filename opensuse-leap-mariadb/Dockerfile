@@ -1,26 +1,21 @@
 #Version: 0.0.1
-FROM opensuse/leap:15.1
+FROM gallochri/leap:15.1
 LABEL maintainer="chri@gallochri.com"
 LABEL descriptor="MariaDB daabase"
 
-ENV REFRESHED_AT 2019-09-16
-ENV MYSQL_ROOT_PASSWORD "mysqlrootpassword"
+ENV REFRESHED_AT 2019-09-17
 
-#Update and install packages
-RUN zypper --non-interactive dup && \
-    zypper in -y mariadb
-RUN mkdir -p /var/lib/mysql &&\
-    chown -R mysql:mysql /var/lib/mysql
+RUN zypper install -y mariadb
+ADD bind-any.cnf /etc/my.cnf.d/
 
-USER mysql:mysql
-RUN mysql_install_db
-
-VOLUME /var/lib/mysql
-COPY opensuse-leap-mariadb-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
-COPY opensuse-leap-mariadb-healthcheck.sh /healthcheck.sh
-ENTRYPOINT ["docker-entrypoint.sh"]
-HEALTHCHECK CMD /healthcheck.sh
+# Setup mariadb
+RUN /usr/lib/mysql/mysql-systemd-helper install; \
+    /usr/lib/mysql/mysql-systemd-helper start & \
+    /usr/lib/mysql/mysql-systemd-helper wait; \
+    /usr/bin/mysql -u root -e "SELECT @@version; CREATE USER 'root'@'%' IDENTIFIED BY 'opensuse'; GRANT ALL ON *.* TO 'root'@'%' WITH GRANT OPTION;"; \
+    mysqladmin shutdown
 
 EXPOSE 3306
 
-CMD ["mysqld","--explicit_defaults_for_timestamp"]
+USER mysql:mysql
+CMD ["mysqld"]
